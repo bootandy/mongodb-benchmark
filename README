@@ -1,0 +1,13 @@
+Bench marking Mongodb.
+
+Run:
+	python main.py 
+
+Discoveries:
+	Adding: safe=True slows you down between ~ 0 -> 100%
+
+	If you have an object with many fields and you only need to access a few of them. 
+		- Just load the whole object instead of picking out certain fields. 
+
+	If you have an object with > 1000 entries in an array field then consider disregarding the above and only the fields or entries that you need.
+
