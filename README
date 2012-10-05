@@ -11,9 +11,6 @@ Discoveries:
 
 	If you have an object with > 1000 entries in an array field then consider disregarding the above and only the fields or entries that you need.
 
-	applying updates at the db level is faster than calling object.save(). Dont make multiple calls to the DB to do your update though - then object.save() will perform better
+	Applying updates at the db level is faster than calling object.save(). Dont make multiple calls to the DB to do your update though - then object.save() will perform better
 	
 
-Test:
-check no lazy loading
-what about objs with huge sub objs (eg 1mb strings)

@@ -19,13 +19,13 @@ def make_string(how_long):
 def make_big_object(size):
     big_object = {}
     for i in range(1, size):
-        big_object[str(i)] = random.random() * 10000
+        big_object['double ' + str(i)] = random.random() * 10000
 
     for i in range(1, size):
         big_object['arrays ' + str(i)] = build_list(100)
 
     for i in range(1, size):
-        big_object['str ' + str(i)] = make_string(100)
+        big_object[str(i)] = make_string(100)
 
     return big_object
 
@@ -70,13 +70,24 @@ def update_3_pushes(obj, safe, collection_name='default'):
 def read(_id, collection_name='default'):
     return db[collection_name].find({"_id":_id}).next()
 
+def read_1_col(_id, collection_name='default'):
+    return db[collection_name].find({"_id":_id},
+        {'1': 1 }).next()
+
 def read_10_cols(_id, collection_name='default'):
     return db[collection_name].find({"_id":_id},
         {'1': 1, '2': 1, '3': 1, '4': 1, '5': 1,'6': 1, '7': 1, '8': 1, '9': 1, '10':1 }).next()
 
-def read_1_col(_id, collection_name='default'):
-    return db[collection_name].find({"_id":_id},
-        {'1': 1 }).next()
+def read_list(_ids, collection_name='default'):
+    my_list = list(db[collection_name].find({"_id": {"$in": _ids}}))
+    return my_list
+
+def read_n_cols_list(_ids, number_of_cols, collection_name='default'):
+    to_read_out = {'arrays ' + str(i) : i for i in range(1, number_of_cols + 1)}
+
+    return list(
+        db[collection_name].find({"_id": {"$in": _ids}}, to_read_out)
+    )
 
 # --------------------- End DB queries -------------------
 
@@ -160,6 +171,25 @@ def analyze_reads():
     print '------------'
     # with timer():
     #   insert([bos], True, 'reads')
+
+def analyze_read_lists():
+    objects = generate_objs(100, 100)
+
+    print 'Inserting 100 objects with 300 fields each'
+    print 'Next: read 100 objects either the while object or just 10 fields of object'
+
+    time_it(insert_list, {'obj_list': objects, 'safe': True, 'collection_name': 'read_lists'})
+
+    ids = [o['_id'] for o in objects]
+
+    time_it(read_n_cols_list, {'_ids' : ids, 'number_of_cols': 99, 'collection_name': 'read_lists'})
+    time_it(read_n_cols_list, {'_ids' : ids, 'number_of_cols': 10, 'collection_name': 'read_lists'})
+    time_it(read_n_cols_list, {'_ids' : ids, 'number_of_cols': 20, 'collection_name': 'read_lists'})
+    time_it(read_n_cols_list, {'_ids' : ids, 'number_of_cols': 30, 'collection_name': 'read_lists'})
+    time_it(read_n_cols_list, {'_ids' : ids, 'number_of_cols': 40, 'collection_name': 'read_lists'})
+    time_it(read_list,  {'_ids' : ids, 'collection_name': 'read_lists'})
+
+    print '------------'
 
 """
 Conclusion: Here reading 1 of the 10 giant arrays takes ~ 10%  of the time to read the whole thing.
@@ -262,11 +292,12 @@ if __name__ == '__main__':
     analyze_inserts()
     analyze_updates()
     analyze_reads()
+    analyze_read_lists()
 
     analyze_reads_long_array()
     analyze_updates_long_array()
 
-    analyze_reads_long_strings()
+    # analyze_reads_long_strings()
 
     #analyze_partial_update()
     #cProfile.runctx('analyze_reads()', globals(), locals())
